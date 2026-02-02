@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
 import Image from 'next/image'
-import { supabase } from '../../../lib/supabase'
-import ShareButtons from '../../../components/ShareButtons'
-import RelatedMemes from '../../../components/RelatedMemes'
-import DownloadButton from '../../../components/DownloadButton'
+import { supabase } from '../../lib/supabase'
+import ShareButtons from '../../components/ShareButtons'
+import RelatedMemes from '../../components/RelatedMemes'
+import DownloadButton from '../../components/DownloadButton'
 
 // Generate metadata for SEO
 export async function generateMetadata({
@@ -301,3 +301,4 @@ export default async function MemePage({
     </div>
   )
 }
+
