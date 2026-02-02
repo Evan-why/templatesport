@@ -103,11 +103,13 @@ async function MemeGrid({
           </div>
 
           {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={count || 0}
-          />
+          <Suspense fallback={<div className="text-center py-8">Loading...</div>}>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={count || 0}
+            />
+          </Suspense>
         </>
       ) : (
         <div className="text-center py-20">
@@ -167,13 +169,17 @@ export default async function Home({
             Browse, download, and share the best meme templates
           </p>
 
-          {/* Search Bar */}
+          {/* Search Bar - Wrapped in Suspense */}
           <div className="flex justify-center mb-8">
-            <SearchBar />
+            <Suspense fallback={<div className="w-full max-w-2xl h-12 bg-gray-200 animate-pulse rounded-lg"></div>}>
+              <SearchBar />
+            </Suspense>
           </div>
 
-          {/* Category Filter */}
-          <CategoryFilter />
+          {/* Category Filter - Wrapped in Suspense */}
+          <Suspense fallback={<div className="flex gap-3 justify-center"><div className="h-10 w-32 bg-gray-200 animate-pulse rounded-full"></div></div>}>
+            <CategoryFilter />
+          </Suspense>
         </div>
 
         {/* Memes Grid with Loading State */}
@@ -220,4 +226,3 @@ export default async function Home({
     </div>
   )
 }
-
