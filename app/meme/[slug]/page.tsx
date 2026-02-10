@@ -10,12 +10,14 @@ import DownloadButton from '../../components/DownloadButton'
 export async function generateMetadata({
   params 
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }): Promise<Metadata> {
+  const { slug } = await params
+  
   const { data: meme } = await supabase
     .from('memes')
     .select('*')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single()
 
   if (!meme) {
@@ -25,7 +27,7 @@ export async function generateMetadata({
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-  const memeUrl = `${siteUrl}/meme/${params.slug}`
+  const memeUrl = `${siteUrl}/meme/${slug}`
 
   return {
     title: meme.title,
@@ -62,13 +64,15 @@ export async function generateMetadata({
 export default async function MemePage({
   params 
 }: {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }) {
+  const { slug } = await params
+  
   // Fetch meme data
   const { data: meme, error } = await supabase
     .from('memes')
     .select('*')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single()
 
   if (error || !meme) {
@@ -83,7 +87,7 @@ export default async function MemePage({
 
   // Get current URL for sharing
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-  const currentUrl = `${siteUrl}/meme/${params.slug}`
+  const currentUrl = `${siteUrl}/meme/${slug}`
 
   // JSON-LD structured data
   const jsonLd = {
@@ -301,4 +305,3 @@ export default async function MemePage({
     </div>
   )
 }
-

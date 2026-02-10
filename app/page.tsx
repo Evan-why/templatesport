@@ -133,11 +133,12 @@ async function MemeGrid({
 export default async function Home({
   searchParams,
 }: {
-  searchParams: { search?: string; category?: string; page?: string }
+  searchParams: Promise<{ search?: string; category?: string; page?: string }>
 }) {
-  const searchQuery = searchParams.search || ''
-  const categoryFilter = searchParams.category || 'all'
-  const currentPage = parseInt(searchParams.page || '1', 10)
+  const params = await searchParams
+  const searchQuery = params.search || ''
+  const categoryFilter = params.category || 'all'
+  const currentPage = parseInt(params.page || '1', 10)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -226,3 +227,4 @@ export default async function Home({
     </div>
   )
 }
+
