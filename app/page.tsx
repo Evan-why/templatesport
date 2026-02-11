@@ -151,10 +151,10 @@ export default async function Home({
               <span className="text-2xl font-bold text-gray-900">MemeMaster</span>
             </a>
             <a
-              href="/admin"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
+              href="/blog"
+              className="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium transition"
             >
-              Upload Meme
+              📝 Blog
             </a>
           </div>
         </div>
@@ -215,7 +215,7 @@ export default async function Home({
               <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-2 text-gray-400">
                 <li><a href="/" className="hover:text-white">Home</a></li>
-                <li><a href="/admin" className="hover:text-white">Upload Meme</a></li>
+                <li><a href="/blog" className="hover:text-white">Blog</a></li>
               </ul>
             </div>
           </div>
@@ -227,4 +227,3 @@ export default async function Home({
     </div>
   )
 }
-
