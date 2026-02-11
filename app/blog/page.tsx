@@ -1,17 +1,20 @@
-export default function BlogPage() {
-  // In future, you can fetch from Supabase. For now, hardcoded.
-  const blogPosts = [
-    {
-      id: 1,
-      slug: 'distracted-boyfriend-meme-explained',
-      title: 'The Distracted Boyfriend Meme: Origins and Why It Went Viral',
-      excerpt: 'Discover the story behind one of the internet\'s most popular memes and why it resonates with millions.',
-      image: 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
-      date: '2026-02-08',
-      category: 'Meme Origins'
-    },
-    // Add more blog posts here
-  ]
+import { supabase } from '../lib/supabase'
+import Link from 'next/link'
+
+export const revalidate = 60 // Revalidate every 60 seconds
+
+async function getBlogPosts() {
+  const { data: posts } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .eq('published', true)
+    .order('created_at', { ascending: false })
+  
+  return posts || []
+}
+
+export default async function BlogPage() {
+  const posts = await getBlogPosts()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -48,57 +51,76 @@ export default function BlogPage() {
 
         {/* Blog Posts Grid */}
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {blogPosts.map((post) => (
+          {posts.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {posts.map((post) => (
+                <Link
+                  key={post.id}
+                  href={`/blog/${post.slug}`}
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                >
+                  <div className="relative h-48 bg-gray-200">
+                    {post.featured_image ? (
+                      <img
+                        src={post.featured_image}
+                        alt={post.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-6xl">
+                        🎭
+                      </div>
+                    )}
+                    <div className="absolute top-4 left-4">
+                      <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                        {post.category}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <p className="text-sm text-gray-500 mb-2">
+                      {new Date(post.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                    <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition">
+                      {post.title}
+                    </h2>
+                    <p className="text-gray-600 line-clamp-3">
+                      {post.excerpt || 'Click to read more...'}
+                    </p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="text-blue-600 font-semibold flex items-center gap-2">
+                        Read More 
+                        <span>→</span>
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        👁️ {post.views} views
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center bg-blue-50 border border-blue-200 rounded-lg p-12">
+              <div className="text-6xl mb-4">📝</div>
+              <h3 className="text-2xl font-bold text-blue-900 mb-3">
+                No Blog Posts Yet
+              </h3>
+              <p className="text-blue-700 mb-6">
+                Check back soon for amazing meme stories and insights!
+              </p>
               <a
-                key={post.id}
-                href={`/blog/${post.slug}`}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                href="/"
+                className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
               >
-                <div className="relative h-48 bg-gray-200">
-                  <img
-                    src={post.image}
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                      {post.category}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <p className="text-sm text-gray-500 mb-2">
-                    {new Date(post.date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </p>
-                  <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition">
-                    {post.title}
-                  </h2>
-                  <p className="text-gray-600 line-clamp-3">
-                    {post.excerpt}
-                  </p>
-                  <div className="mt-4 text-blue-600 font-semibold flex items-center gap-2">
-                    Read More 
-                    <span>→</span>
-                  </div>
-                </div>
+                Browse Meme Templates
               </a>
-            ))}
-          </div>
-
-          {/* Coming Soon Message */}
-          <div className="mt-16 text-center bg-blue-50 border border-blue-200 rounded-lg p-8">
-            <h3 className="text-2xl font-bold text-blue-900 mb-3">
-              More Stories Coming Soon! 🚀
-            </h3>
-            <p className="text-blue-700">
-              We're constantly researching and writing about the memes you love. Check back regularly for new content!
-            </p>
-          </div>
+            </div>
+          )}
         </div>
       </main>
 
@@ -136,3 +158,4 @@ export default function BlogPage() {
     </div>
   )
 }
+
