@@ -1,9 +1,12 @@
-'use client'
+'use client' 
 
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 export default function BlogAdmin() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
   const [posts, setPosts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<any>(null)
@@ -17,9 +20,41 @@ export default function BlogAdmin() {
     published: false,
   })
 
+  // Check if already logged in
   useEffect(() => {
-    fetchPosts()
+    const loggedIn = sessionStorage.getItem('blog_admin_authenticated')
+    if (loggedIn === 'true') {
+      setIsAuthenticated(true)
+      fetchPosts()
+    } else {
+      setLoading(false)
+    }
   }, [])
+
+  // Handle login
+  function handleLogin(e: React.FormEvent) {
+    e.preventDefault()
+    
+    // Check password against environment variable
+    const correctPassword = process.env.NEXT_PUBLIC_BLOG_ADMIN_PASSWORD || 'changeme123'
+    
+    if (password === correctPassword) {
+      sessionStorage.setItem('blog_admin_authenticated', 'true')
+      setIsAuthenticated(true)
+      setError('')
+      fetchPosts()
+    } else {
+      setError('❌ Incorrect password. Access denied.')
+      setPassword('')
+    }
+  }
+
+  // Handle logout
+  function handleLogout() {
+    sessionStorage.removeItem('blog_admin_authenticated')
+    setIsAuthenticated(false)
+    setPassword('')
+  }
 
   async function fetchPosts() {
     const { data } = await supabase
@@ -35,19 +70,16 @@ export default function BlogAdmin() {
     e.preventDefault()
     
     if (editing) {
-      // Update existing post
       await supabase
         .from('blog_posts')
         .update(formData)
         .eq('id', editing.id)
     } else {
-      // Create new post
       await supabase
         .from('blog_posts')
         .insert([formData])
     }
 
-    // Reset form
     setFormData({
       title: '',
       slug: '',
@@ -84,7 +116,6 @@ export default function BlogAdmin() {
     })
   }
 
-  // Auto-generate slug from title
   function generateSlug(title: string) {
     return title
       .toLowerCase()
@@ -92,6 +123,62 @@ export default function BlogAdmin() {
       .replace(/^-|-$/g, '')
   }
 
+  // LOGIN SCREEN
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="text-6xl mb-4">🔒</div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Blog Admin
+            </h1>
+            <p className="text-gray-600">
+              Enter password to access
+            </p>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Admin Password
+              </label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                placeholder="Enter your password"
+                autoFocus
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-lg transition shadow-lg hover:shadow-xl"
+            >
+              🔓 Unlock Admin Panel
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <a href="/" className="text-sm text-gray-600 hover:text-blue-600">
+              ← Back to Home
+            </a>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ADMIN PANEL (after login)
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -101,11 +188,20 @@ export default function BlogAdmin() {
             <div className="flex items-center space-x-2">
               <span className="text-3xl">📝</span>
               <span className="text-2xl font-bold text-gray-900">Blog Admin</span>
+              <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
+                ✓ Authenticated
+              </span>
             </div>
             <div className="flex gap-4">
               <a href="/" className="text-gray-700 hover:text-blue-600">Home</a>
               <a href="/blog" className="text-gray-700 hover:text-blue-600">View Blog</a>
               <a href="/admin" className="text-gray-700 hover:text-blue-600">Meme Admin</a>
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold"
+              >
+                🔒 Logout
+              </button>
             </div>
           </div>
         </div>
@@ -132,7 +228,6 @@ export default function BlogAdmin() {
                     value={formData.title}
                     onChange={(e) => {
                       setFormData({ ...formData, title: e.target.value })
-                      // Auto-generate slug if not editing
                       if (!editing) {
                         setFormData({ 
                           ...formData, 
@@ -192,7 +287,7 @@ export default function BlogAdmin() {
                     placeholder="<p>Your blog content here... Use HTML tags for formatting.</p>"
                   />
                   <p className="text-sm text-gray-500 mt-1">
-                    Use HTML: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;, etc.
+                    Use HTML: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;, &lt;img&gt;
                   </p>
                 </div>
 
@@ -348,4 +443,6 @@ export default function BlogAdmin() {
     </div>
   )
 }
+
+
 
