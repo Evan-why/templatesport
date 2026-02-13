@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { Metadata } from 'next'
-import { supabase } from '../../../lib/supabase'
+import { supabase } from '../../lib/supabase' 
 
 export const revalidate = 60 // Revalidate every 60 seconds
 
