@@ -35,7 +35,7 @@ export default function BlogAdmin() {
   function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     
-    const correctPassword = process.env.NEXT_PUBLIC_BLOG_ADMIN_PASSWORD || 'changeme123'
+    const correctPassword = 'TEST123'  // Hardcoded for testing 
     
     if (password === correctPassword) {
       sessionStorage.setItem('blog_admin_authenticated', 'true')
@@ -452,3 +452,5 @@ export default function BlogAdmin() {
     </div>
   )
 }
+
+
