@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 export default function BlogAdmin() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [password, setPassword] = useState('')
-  const [loggedIn, setLoggedIn] = useState(false)
+  const [error, setError] = useState('')
   const [posts, setPosts] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<any>(null)
   const [formData, setFormData] = useState({
     title: '',
@@ -19,41 +20,49 @@ export default function BlogAdmin() {
     published: false,
   })
 
+  // Check if already logged in
   useEffect(() => {
-    const saved = sessionStorage.getItem('blog_logged_in')
-    if (saved === 'true') {
-      setLoggedIn(true)
+    const loggedIn = sessionStorage.getItem('blog_admin_authenticated')
+    if (loggedIn === 'true') {
+      setIsAuthenticated(true)
       fetchPosts()
+    } else {
+      setLoading(false)
     }
   }, [])
 
-  async function fetchPosts() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .order('created_at', { ascending: false })
-    setPosts(data || [])
-    setLoading(false)
-  }
-
+  // Handle login
   function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    // CHANGE "blog123" TO YOUR PASSWORD!
-    if (password === "Evanhubby12345") {
-      sessionStorage.setItem('blog_logged_in', 'true')
-      setLoggedIn(true)
+    
+    const correctPassword = process.env.NEXT_PUBLIC_BLOG_ADMIN_PASSWORD || 'changeme123'
+    
+    if (password === correctPassword) {
+      sessionStorage.setItem('blog_admin_authenticated', 'true')
+      setIsAuthenticated(true)
+      setError('')
       fetchPosts()
     } else {
-      alert('❌ Wrong password!')
+      setError('❌ Incorrect password. Access denied.')
       setPassword('')
     }
   }
 
+  // Handle logout
   function handleLogout() {
-    sessionStorage.removeItem('blog_logged_in')
-    setLoggedIn(false)
+    sessionStorage.removeItem('blog_admin_authenticated')
+    setIsAuthenticated(false)
     setPassword('')
+  }
+
+  async function fetchPosts() {
+    const { data } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    setPosts(data || [])
+    setLoading(false)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -64,12 +73,10 @@ export default function BlogAdmin() {
         .from('blog_posts')
         .update(formData)
         .eq('id', editing.id)
-      alert('✅ Post updated!')
     } else {
       await supabase
         .from('blog_posts')
         .insert([formData])
-      alert('✅ Post created!')
     }
 
     setFormData({
@@ -83,6 +90,7 @@ export default function BlogAdmin() {
     })
     setEditing(null)
     fetchPosts()
+    alert('✅ Post saved successfully!')
   }
 
   async function handleDelete(id: string) {
@@ -91,7 +99,6 @@ export default function BlogAdmin() {
         .from('blog_posts')
         .delete()
         .eq('id', id)
-      alert('✅ Deleted!')
       fetchPosts()
     }
   }
@@ -107,7 +114,7 @@ export default function BlogAdmin() {
       category: post.category,
       published: post.published,
     })
-    window.scrollTo(0, 0)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   function generateSlug(title: string) {
@@ -118,36 +125,54 @@ export default function BlogAdmin() {
   }
 
   // LOGIN SCREEN
-  if (!loggedIn) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
           <div className="text-center mb-8">
             <div className="text-6xl mb-4">🔒</div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Blog Admin</h1>
-            <p className="text-gray-600">Enter password to continue</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Blog Admin
+            </h1>
+            <p className="text-gray-600">
+              Enter password to access
+            </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-lg"
-              placeholder="Password"
-              autoFocus
-            />
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Admin Password
+              </label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                placeholder="Enter your password"
+                autoFocus
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-lg">
+                {error}
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-lg shadow-lg"
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-lg transition shadow-lg hover:shadow-xl"
             >
-              🔓 Login
+              🔓 Unlock Admin Panel
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <a href="/" className="text-sm text-gray-600 hover:text-blue-600">← Back to Home</a>
+            <a href="/" className="text-sm text-gray-600 hover:text-blue-600">
+              ← Back to Home
+            </a>
           </div>
         </div>
       </div>
@@ -165,7 +190,7 @@ export default function BlogAdmin() {
               <span className="text-3xl">📝</span>
               <span className="text-2xl font-bold text-gray-900">Blog Admin</span>
               <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold">
-                ✓ Logged In
+                ✓ Authenticated
               </span>
             </div>
             <div className="flex gap-4">
@@ -185,7 +210,7 @@ export default function BlogAdmin() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* LEFT: Create/Edit Form */}
+          {/* Form Section */}
           <div>
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
@@ -203,16 +228,14 @@ export default function BlogAdmin() {
                     required
                     value={formData.title}
                     onChange={(e) => {
-                      setFormData({ ...formData, title: e.target.value })
-                      if (!editing) {
-                        setFormData({ 
-                          ...formData, 
-                          title: e.target.value,
-                          slug: generateSlug(e.target.value)
-                        })
-                      }
+                      const newTitle = e.target.value
+                      setFormData({ 
+                        ...formData, 
+                        title: newTitle,
+                        slug: !editing ? generateSlug(newTitle) : formData.slug
+                      })
                     }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Drake Meme: Complete Guide"
                   />
                 </div>
@@ -227,11 +250,11 @@ export default function BlogAdmin() {
                     required
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="drake-meme-guide"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="drake-meme-complete-guide"
                   />
                   <p className="text-sm text-gray-500 mt-1">
-                    🔗 URL: /blog/{formData.slug || 'your-slug'}
+                    URL: /blog/{formData.slug || 'your-slug-here'}
                   </p>
                 </div>
 
@@ -244,8 +267,8 @@ export default function BlogAdmin() {
                     value={formData.excerpt}
                     onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
                     rows={2}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="A brief summary..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="A brief summary for the blog listing page..."
                   />
                 </div>
 
@@ -258,12 +281,16 @@ export default function BlogAdmin() {
                     required
                     value={formData.content}
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    rows={10}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500"
-                    placeholder="<h2>Section Title</h2><p>Your content...</p>"
+                    rows={12}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                    placeholder="<h2>Your Section Title</h2>
+<p>Your paragraph text here...</p>
+<ul>
+  <li>Bullet point</li>
+</ul>"
                   />
                   <p className="text-sm text-gray-500 mt-1">
-                    💡 Use HTML: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;img&gt;
+                    Use HTML: &lt;h2&gt;, &lt;p&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;strong&gt;, &lt;img&gt;
                   </p>
                 </div>
 
@@ -276,9 +303,12 @@ export default function BlogAdmin() {
                     type="url"
                     value={formData.featured_image}
                     onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="https://res.cloudinary.com/..."
                   />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Upload to Cloudinary, then paste URL here
+                  </p>
                 </div>
 
                 {/* Category */}
@@ -289,7 +319,7 @@ export default function BlogAdmin() {
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option>Meme Origins</option>
                     <option>Meme Tutorials</option>
@@ -299,7 +329,7 @@ export default function BlogAdmin() {
                 </div>
 
                 {/* Published */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
                   <input
                     type="checkbox"
                     id="published"
@@ -307,8 +337,8 @@ export default function BlogAdmin() {
                     onChange={(e) => setFormData({ ...formData, published: e.target.checked })}
                     className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
-                  <label htmlFor="published" className="text-sm font-semibold text-gray-700">
-                    ✅ Publish immediately (visible to public)
+                  <label htmlFor="published" className="text-sm font-semibold text-gray-900">
+                    ✅ Publish immediately (make visible to public)
                   </label>
                 </div>
 
@@ -316,7 +346,7 @@ export default function BlogAdmin() {
                 <div className="flex gap-3 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition shadow-lg"
+                    className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition text-lg shadow-lg"
                   >
                     {editing ? '💾 Update Post' : '🚀 Create Post'}
                   </button>
@@ -337,7 +367,7 @@ export default function BlogAdmin() {
                       }}
                       className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-semibold transition"
                     >
-                      ❌ Cancel
+                      Cancel
                     </button>
                   )}
                 </div>
@@ -345,7 +375,7 @@ export default function BlogAdmin() {
             </div>
           </div>
 
-          {/* RIGHT: Posts List */}
+          {/* Posts List */}
           <div>
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
@@ -353,14 +383,14 @@ export default function BlogAdmin() {
               </h2>
 
               {loading ? (
-                <p className="text-gray-600">Loading posts...</p>
+                <p className="text-gray-600">Loading...</p>
               ) : posts.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="text-6xl mb-4">📝</div>
-                  <p className="text-gray-600">No posts yet. Create your first one!</p>
+                  <p className="text-gray-600 text-lg">No posts yet. Create your first post!</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-[800px] overflow-y-auto">
                   {posts.map((post) => (
                     <div
                       key={post.id}
@@ -368,15 +398,15 @@ export default function BlogAdmin() {
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <h3 className="font-bold text-gray-900">{post.title}</h3>
                             {post.published ? (
                               <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">
-                                Published
+                                ✅ Published
                               </span>
                             ) : (
                               <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-semibold">
-                                Draft
+                                📝 Draft
                               </span>
                             )}
                           </div>
@@ -396,16 +426,16 @@ export default function BlogAdmin() {
                           >
                             ✏️ Edit
                           </button>
-                          
+                          <a
                             href={`/blog/${post.slug}`}
                             target="_blank"
-                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm font-semibold text-center whitespace-nowrap"
+                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 text-sm font-semibold text-center"
                           >
                             👁️ View
                           </a>
                           <button
                             onClick={() => handleDelete(post.id)}
-                            className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm font-semibold whitespace-nowrap"
+                            className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm font-semibold"
                           >
                             🗑️ Delete
                           </button>
@@ -422,4 +452,3 @@ export default function BlogAdmin() {
     </div>
   )
 }
-
