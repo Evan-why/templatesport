@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase' 
 import Link from 'next/link'
 
-export const revalidate = 60 // Revalidate every 60 seconds
+export const revalidate = 0 // Revalidate every 60 seconds
 
 async function getBlogPosts() {
   const { data: posts } = await supabase
@@ -158,6 +158,7 @@ export default async function BlogPage() {
     </div>
   )
 }
+
 
 
 
