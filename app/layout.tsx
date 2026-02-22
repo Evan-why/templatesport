@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description: 'Discover, download, and share the best meme templates. Browse trending, Indian, and international memes. Free to use, no watermarks!',
   keywords: ['memes', 'meme templates', 'viral content', 'indian memes', 'trending memes', 'free memes', 'meme generator', 'funny memes'],
    verification: {
-    google: '<meta name="google-site-verification" content="RPSu3ENKc9BcH2I8KsOE1o7nCkNnzTCr5k7VoaC5DdI" />',
+    google: ' RPSu3ENKc9BcH2I8KsOE1o7nCkNnzTCr5k7VoaC5DdI ' ,
   },
   authors: [{ name: 'MemeMaster' }],
   creator: 'MemeMaster',
@@ -100,6 +100,8 @@ export default function RootLayout({
     </html>
   )
 }
+
+
 
 
 
