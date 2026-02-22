@@ -194,36 +194,48 @@ export default async function Home({
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 mt-20">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="text-xl font-bold mb-4">🎭 MemeMaster</h3>
-              <p className="text-gray-400">
-                Your ultimate destination for meme templates and viral content.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Categories</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="/?category=trending" className="hover:text-white">🔥 Trending</a></li>
-                <li><a href="/?category=indian" className="hover:text-white">🇮🇳 Indian Memes</a></li>
-                <li><a href="/?category=international" className="hover:text-white">🌍 International</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="/" className="hover:text-white">Home</a></li>
-                <li><a href="/blog" className="hover:text-white">Blog</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>© 2025 MemeMaster. All memes are user-generated content.</p>
-          </div>
-        </div>
-      </footer>
+    <footer className="bg-gray-900 text-white py-12 mt-20">
+  <div className="container mx-auto px-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div>
+        <h3 className="text-xl font-bold mb-4">🎭 MemeMaster</h3>
+        <p className="text-gray-400">
+          Your ultimate destination for meme templates and viral content.
+        </p>
+      </div>
+      <div>
+        <h4 className="text-lg font-semibold mb-4">Categories</h4>
+        <ul className="space-y-2 text-gray-400">
+          <li><a href="/?category=trending" className="hover:text-white">🔥 Trending</a></li>
+          <li><a href="/?category=indian" className="hover:text-white">🇮🇳 Indian Memes</a></li>
+          <li><a href="/?category=international" className="hover:text-white">🌍 International</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
+        <ul className="space-y-2 text-gray-400">
+          <li><a href="/" className="hover:text-white">Home</a></li>
+          <li><a href="/blog" className="hover:text-white">Blog</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    {/* Legal Links - THIS IS THE IMPORTANT PART! */}
+    <div className="border-t border-gray-800 mt-8 pt-8">
+      <div className="flex flex-wrap justify-center gap-6 mb-4">
+        <a href="/privacy" className="text-gray-400 hover:text-white text-sm">Privacy Policy</a>
+        <a href="/about" className="text-gray-400 hover:text-white text-sm">About Us</a>
+        <a href="/contact" className="text-gray-400 hover:text-white text-sm">Contact</a>
+        <a href="/terms" className="text-gray-400 hover:text-white text-sm">Terms of Service</a>
+      </div>
+      <div className="text-center text-gray-400 text-sm">
+        <p>© 2026 MemeMaster. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+</footer>
     </div>
   )
 }
+
+
