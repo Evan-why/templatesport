@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 const COOKIE_NAME = 'mememaster_blog_admin'
@@ -53,7 +54,5 @@ export function blogAdminSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key) throw new Error('Server Supabase configuration is missing')
-  // Import lazily so public pages continue to use the anon client.
-  const { createClient } = require('@supabase/supabase-js') as typeof import('@supabase/supabase-js')
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
 }
