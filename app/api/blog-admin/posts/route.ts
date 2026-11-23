@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { blogAdminSupabase, isBlogAdmin } from '../../../../lib/blog-admin-auth'
+import { blogAdminSupabase, isBlogAdmin } from '../../../lib/blog-admin-auth'
 
 export const runtime = 'nodejs'
 
