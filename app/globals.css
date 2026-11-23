@@ -26,17 +26,19 @@ body {
 }
 
 /* Readable, consistent typography for article HTML saved by the blog editor. */
-.article-content,
-.article-content * {
+.article-content {
   color: #374151 !important;
   font-size: 1.075rem;
   line-height: 1.9;
   overflow-wrap: anywhere;
 }
 
+.article-content * {
+  color: #374151 !important;
+}
+
 .article-content h2 {
   margin: 3rem 0 1rem;
-  color: #111827 !important;
   color: #111827 !important;
   font-size: clamp(1.55rem, 3vw, 2rem);
   font-weight: 750;
@@ -87,7 +89,6 @@ body {
 
 .article-content blockquote {
   margin: 2rem 0;
-  color: #1e3a8a !important;
   border-left: 4px solid #93c5fd;
   border-radius: 0 0.5rem 0.5rem 0;
   background: #eff6ff;
