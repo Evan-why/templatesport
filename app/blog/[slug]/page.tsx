@@ -1,29 +1,13 @@
 import { notFound } from 'next/navigation'
-import { Metadata } from 'next'
-import { supabase } from '../../lib/supabase' 
+import type { Metadata } from 'next'
+import { supabase } from '../../lib/supabase'
 
-export const revalidate = 60 // Revalidate every 60 seconds
+export const revalidate = 60
 
-// Generate metadata for SEO
-export async function generateMetadata({
-  params 
-}: {
-  params: Promise<{ slug: string }>
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-  
-  const { data: post } = await supabase
-    .from('blog_posts')
-    .select('*')
-    .eq('slug', slug)
-    .eq('published', true)
-    .single()
-
-  if (!post) {
-    return {
-      title: 'Post Not Found - MemeMaster Blog',
-    }
-  }
+  const { data: post } = await supabase.from('blog_posts').select('*').eq('slug', slug).eq('published', true).single()
+  if (!post) return { title: 'Post Not Found - MemeMaster Blog' }
 
   return {
     title: post.title,
@@ -39,14 +23,8 @@ export async function generateMetadata({
   }
 }
 
-export default async function BlogPostPage({
-  params 
-}: {
-  params: Promise<{ slug: string }>
-}) {
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  
-  // Fetch blog post
   const { data: post, error } = await supabase
     .from('blog_posts')
     .select('*')
@@ -54,129 +32,77 @@ export default async function BlogPostPage({
     .eq('published', true)
     .single()
 
-  if (error || !post) {
-    notFound()
-  }
+  if (error || !post) notFound()
 
-  // Increment view count
-  await supabase
-    .from('blog_posts')
-    .update({ views: post.views + 1 })
-    .eq('id', post.id)
+  await supabase.from('blog_posts').update({ views: post.views + 1 }).eq('id', post.id)
+
+  const publishedDate = new Date(post.created_at).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'long', day: 'numeric',
+  })
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <a href="/" className="flex items-center space-x-2">
-              <span className="text-3xl">🎭</span>
-              <span className="text-2xl font-bold text-gray-900">MemeMaster</span>
-            </a>
-            <div className="flex gap-6">
-              <a href="/" className="text-gray-700 hover:text-blue-600 font-medium transition">
-                🏠 Home
-              </a>
-              <a href="/blog" className="text-gray-700 hover:text-blue-600 font-medium transition">
-                📝 Blog
-              </a>
-            </div>
-          </div>
+    <div className="min-h-screen bg-[#f7f7f5] text-[#202124]">
+      <header className="sticky top-0 z-50 border-b border-gray-200/80 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+          <a href="/" className="flex items-center gap-2">
+            <span className="text-2xl" aria-hidden="true">🎭</span>
+            <span className="text-xl font-bold tracking-tight text-gray-950 sm:text-2xl">MemeMaster</span>
+          </a>
+          <nav aria-label="Main navigation" className="flex items-center gap-5 text-sm font-medium sm:gap-7">
+            <a href="/" className="text-gray-600 transition hover:text-blue-700">Home</a>
+            <a href="/blog" className="text-blue-700">Blog</a>
+          </nav>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-12">
-        <article className="max-w-4xl mx-auto">
-          {/* Breadcrumb */}
-          <div className="mb-6 text-sm text-gray-600">
-            <a href="/" className="hover:text-blue-600">Home</a>
-            {' '}/{' '}
-            <a href="/blog" className="hover:text-blue-600">Blog</a>
-            {' '}/{' '}
-            <span className="text-gray-900">{post.title}</span>
-          </div>
+      <main className="px-4 py-8 sm:px-6 sm:py-14">
+        <article className="mx-auto max-w-3xl">
+          <nav aria-label="Breadcrumb" className="mb-8 text-sm text-gray-500">
+            <a href="/" className="transition hover:text-blue-700">Home</a>
+            <span className="mx-2 text-gray-300">/</span>
+            <a href="/blog" className="transition hover:text-blue-700">Blog</a>
+            <span className="mx-2 text-gray-300">/</span>
+            <span className="text-gray-700" aria-current="page">{post.title}</span>
+          </nav>
 
-          {/* Category & Date */}
-          <div className="flex items-center gap-4 mb-6">
-            <span className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
-              {post.category}
-            </span>
-            <span className="text-gray-600">
-              {new Date(post.created_at).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </span>
-            <span className="text-gray-600">
-              👁️ {post.views + 1} views
-            </span>
-          </div>
-
-          {/* Title */}
-          <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            {post.title}
-          </h1>
-
-          {/* Excerpt */}
-          {post.excerpt && (
-            <p className="text-xl text-gray-700 leading-relaxed mb-8 pb-8 border-b border-gray-200">
-              {post.excerpt}
-            </p>
-          )}
-
-          {/* Featured Image */}
-          {post.featured_image && (
-            <div className="relative w-full h-96 bg-gray-200 rounded-lg overflow-hidden mb-8">
-              <img
-                src={post.featured_image}
-                alt={post.title}
-                className="w-full h-full object-cover"
-              />
+          <header className="mb-8">
+            <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+              <span className="rounded-full bg-blue-50 px-3 py-1 font-semibold text-blue-700">{post.category}</span>
+              <time dateTime={post.created_at} className="text-gray-500">{publishedDate}</time>
+              <span className="text-gray-500">{post.views + 1} views</span>
             </div>
+            <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-gray-950 sm:text-4xl md:text-5xl">{post.title}</h1>
+            {post.excerpt && <p className="mt-5 border-b border-gray-200 pb-7 text-lg leading-8 text-gray-600 sm:text-xl sm:leading-9">{post.excerpt}</p>}
+          </header>
+
+          {post.featured_image && (
+            <figure className="mb-10 overflow-hidden rounded-2xl bg-gray-100 shadow-sm">
+              <img src={post.featured_image} alt={post.title} className="max-h-[520px] w-full object-cover" />
+            </figure>
           )}
 
-          {/* Content */}
-          <div 
-            className="prose prose-lg max-w-none prose-headings:font-bold prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-4 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-6 prose-ul:list-disc prose-ul:list-inside prose-ul:text-gray-700 prose-ul:mb-6 prose-ul:space-y-2 prose-ol:list-decimal prose-ol:list-inside prose-ol:text-gray-700 prose-ol:mb-6 prose-ol:space-y-2 prose-strong:text-gray-900"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          <div className="article-content" dangerouslySetInnerHTML={{ __html: post.content }} />
 
-          {/* Author Section */}
-          <div className="mt-12 p-6 bg-gray-100 rounded-lg">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">
-              About MemeMaster
-            </h3>
-            <p className="text-gray-700">
-              MemeMaster is your go-to resource for understanding and using the internet's best memes. We research the origins, cultural impact, and best practices for meme formats so you can create content that resonates.
+          <section className="mt-14 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+            <h2 className="text-lg font-bold text-gray-950">About MemeMaster</h2>
+            <p className="mt-3 leading-7 text-gray-600">
+              MemeMaster is your go-to resource for understanding and using the internet&apos;s best memes. We research the origins, cultural impact, and best practices behind the formats people share every day.
             </p>
-          </div>
+          </section>
 
-          {/* CTA */}
-          <div className="mt-8 bg-blue-50 border-2 border-blue-200 rounded-lg p-8 text-center">
-            <h3 className="text-2xl font-bold text-blue-900 mb-4">
-              Ready to Create Your Own?
-            </h3>
-            <p className="text-blue-700 mb-6">
-              Browse our collection of meme templates and start creating viral content today!
-            </p>
-            <a
-              href="/"
-              className="inline-block px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold text-lg"
-            >
-              Browse Meme Templates →
+          <section className="mt-6 rounded-2xl bg-[#172554] px-6 py-9 text-center text-white sm:px-10">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Ready to create your own?</h2>
+            <p className="mx-auto mt-3 max-w-xl leading-7 text-blue-100">Explore meme templates and find the right format for your next post.</p>
+            <a href="/" className="mt-6 inline-flex rounded-lg bg-white px-6 py-3 font-semibold text-blue-950 transition hover:bg-blue-50">
+              Browse Meme Templates <span className="ml-2" aria-hidden="true">→</span>
             </a>
-          </div>
+          </section>
         </article>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 mt-20">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-gray-400">
-            © 2025 MemeMaster. All memes are user-generated content.
-          </p>
+      <footer className="mt-12 border-t border-gray-200 bg-white py-8">
+        <div className="mx-auto max-w-6xl px-4 text-center text-sm text-gray-500 sm:px-6">
+          © 2026 MemeMaster. All memes are user-generated content.
         </div>
       </footer>
     </div>
