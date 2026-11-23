@@ -27,7 +27,7 @@ body {
 
 /* Readable, consistent typography for article HTML saved by the blog editor. */
 .article-content {
-  color: #374151;
+  color: #374151 !important;
   font-size: 1.075rem;
   line-height: 1.9;
   overflow-wrap: anywhere;
@@ -35,7 +35,7 @@ body {
 
 .article-content h2 {
   margin: 3rem 0 1rem;
-  color: #111827;
+  color: #111827 !important;
   font-size: clamp(1.55rem, 3vw, 2rem);
   font-weight: 750;
   line-height: 1.25;
@@ -44,7 +44,7 @@ body {
 
 .article-content h3 {
   margin: 2.25rem 0 0.75rem;
-  color: #111827;
+  color: #111827 !important;
   font-size: clamp(1.25rem, 2.5vw, 1.5rem);
   font-weight: 700;
   line-height: 1.35;
@@ -70,12 +70,12 @@ body {
 
 .article-content strong,
 .article-content b {
-  color: #111827;
+  color: #111827 !important;
   font-weight: 700;
 }
 
 .article-content a {
-  color: #1d4ed8;
+  color: #1d4ed8 !important;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -84,6 +84,7 @@ body {
 
 .article-content blockquote {
   margin: 2rem 0;
+  color: #1e3a8a !important;
   border-left: 4px solid #93c5fd;
   border-radius: 0 0.5rem 0.5rem 0;
   background: #eff6ff;
@@ -103,7 +104,7 @@ body {
 
 .article-content figcaption {
   margin-top: 0.65rem;
-  color: #6b7280;
+  color: #6b7280 !important;
   font-size: 0.875rem;
   line-height: 1.5;
   text-align: center;
@@ -139,7 +140,7 @@ body {
 
 .article-content th {
   background: #f9fafb;
-  color: #111827;
+  color: #111827 !important;
   font-weight: 700;
 }
 
