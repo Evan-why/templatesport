@@ -49,7 +49,6 @@ body {
 .article-content h3 {
   margin: 2.25rem 0 0.75rem;
   color: #111827 !important;
-  color: #111827 !important;
   font-size: clamp(1.25rem, 2.5vw, 1.5rem);
   font-weight: 700;
   line-height: 1.35;
