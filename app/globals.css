@@ -26,7 +26,8 @@ body {
 }
 
 /* Readable, consistent typography for article HTML saved by the blog editor. */
-.article-content {
+.article-content,
+.article-content * {
   color: #374151 !important;
   font-size: 1.075rem;
   line-height: 1.9;
@@ -36,6 +37,7 @@ body {
 .article-content h2 {
   margin: 3rem 0 1rem;
   color: #111827 !important;
+  color: #111827 !important;
   font-size: clamp(1.55rem, 3vw, 2rem);
   font-weight: 750;
   line-height: 1.25;
@@ -44,6 +46,7 @@ body {
 
 .article-content h3 {
   margin: 2.25rem 0 0.75rem;
+  color: #111827 !important;
   color: #111827 !important;
   font-size: clamp(1.25rem, 2.5vw, 1.5rem);
   font-weight: 700;
