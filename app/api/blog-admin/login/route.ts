@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminSession } from '../../../lib/blog-admin-auth'
 
@@ -11,7 +12,11 @@ export async function POST(request: NextRequest) {
     if (typeof password !== 'string' || password.length === 0 || password.length > 500) {
       return NextResponse.json({ error: 'Enter your admin password.' }, { status: 400 })
     }
-    if (password !== expected) return NextResponse.json({ error: 'Incorrect password. Please try again.' }, { status: 401 })
+    const supplied = Buffer.from(password, 'utf8')
+    const configured = Buffer.from(expected, 'utf8')
+    if (supplied.length !== configured.length || !timingSafeEqual(supplied, configured)) {
+      return NextResponse.json({ error: 'Incorrect password. Please try again.' }, { status: 401 })
+    }
     await createAdminSession()
     return NextResponse.json({ success: true })
   } catch (error) {
