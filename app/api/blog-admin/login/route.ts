@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminSession } from '../../../../lib/blog-admin-auth'
+import { createAdminSession } from '../../../lib/blog-admin-auth'
 
 export const runtime = 'nodejs'
 
