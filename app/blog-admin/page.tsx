@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { supabase } from '../lib/supabase'
 
 type Post = {
   id: string
@@ -40,48 +39,58 @@ export default function BlogAdmin() {
   const editorRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const loggedIn = sessionStorage.getItem('blog_admin_authenticated')
-    if (loggedIn === 'true') {
-      setIsAuthenticated(true)
-      void fetchPosts()
-    } else {
-      setLoading(false)
-    }
+    void (async () => {
+      try {
+        const response = await fetch('/api/blog-admin/posts', { cache: 'no-store' })
+        if (response.ok) {
+          setIsAuthenticated(true)
+          const result = await response.json()
+          setPosts(result.posts || [])
+        }
+      } catch {
+        setError('Could not connect to the admin service.')
+      } finally {
+        setLoading(false)
+      }
+    })()
   }, [])
 
   async function fetchPosts() {
-    const { data, error: fetchError } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (fetchError) {
-      alert('Could not load posts: ' + fetchError.message)
-    } else {
-      setPosts((data || []) as Post[])
+    const response = await fetch('/api/blog-admin/posts', { cache: 'no-store' })
+    if (response.status === 401) {
+      setIsAuthenticated(false)
+      setPosts([])
+      return
     }
-    setLoading(false)
+    const result = await response.json()
+    if (!response.ok) throw new Error(result.error || 'Could not load articles.')
+    setPosts((result.posts || []) as Post[])
   }
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
-    // This preserves the current login behaviour for now. It must be replaced
-    // with server-verified authentication before the admin is considered secure.
-    const correctPassword = process.env.NEXT_PUBLIC_BLOG_ADMIN_PASSWORD || 'changeme123'
-    if (password === correctPassword) {
-      sessionStorage.setItem('blog_admin_authenticated', 'true')
+    setError('')
+    try {
+      const response = await fetch('/api/blog-admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Login failed.')
       setIsAuthenticated(true)
-      setError('')
-      void fetchPosts()
-    } else {
-      setError('Incorrect password. Please try again.')
+      setPassword('')
+      await fetchPosts()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed.')
       setPassword('')
     }
   }
 
-  function handleLogout() {
-    sessionStorage.removeItem('blog_admin_authenticated')
+  async function handleLogout() {
+    await fetch('/api/blog-admin/logout', { method: 'POST' })
     setIsAuthenticated(false)
+    setPosts([])
     setPassword('')
   }
 
@@ -145,15 +154,20 @@ export default function BlogAdmin() {
 
     setSaving(true)
     const payload = { ...formData, content }
-    const result = editing
-      ? await supabase.from('blog_posts').update(payload).eq('id', editing.id)
-      : await supabase.from('blog_posts').insert([payload])
-
-    setSaving(false)
-    if (result.error) {
-      alert('Could not save the post: ' + result.error.message)
+    try {
+      const response = await fetch(editing ? `/api/blog-admin/posts/${editing.id}` : '/api/blog-admin/posts', {
+        method: editing ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || 'Could not save the article.')
+    } catch (err) {
+      setSaving(false)
+      alert(err instanceof Error ? err.message : 'Could not save the article.')
       return
     }
+    setSaving(false)
 
     alert(editing ? 'Post updated successfully.' : 'Post saved successfully.')
     startNewPost()
@@ -162,9 +176,10 @@ export default function BlogAdmin() {
 
   async function handleDelete(id: string) {
     if (!window.confirm('Delete this post permanently?')) return
-    const { error: deleteError } = await supabase.from('blog_posts').delete().eq('id', id)
-    if (deleteError) {
-      alert('Could not delete the post: ' + deleteError.message)
+    const response = await fetch(`/api/blog-admin/posts/${id}`, { method: 'DELETE' })
+    if (!response.ok) {
+      const result = await response.json().catch(() => ({}))
+      alert(result.error || 'Could not delete the article.')
       return
     }
     await fetchPosts()
